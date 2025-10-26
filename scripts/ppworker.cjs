@@ -16,7 +16,7 @@ const updateAppName = async (appName) => {
     }
 }
 
-const updateWebUrl = async (webUrl) => {
+const updateWebUrl = async (webUrl, safeArea) => {
     try {
         // Assuming ContentView.swift
         const contentViewPath = path.join(
@@ -28,6 +28,42 @@ const updateWebUrl = async (webUrl) => {
             /WebView\(url: URL\(string: ".*?"\)!\)/,
             `WebView(url: URL(string: "${webUrl}")!)`
         )
+        if (safeArea === 'all') {
+            console.log('safeArea is all')
+        } else if (safeArea === 'top') {
+            console.log('safeArea is top')
+            content = content.replace(
+                /edges: \[\]/,
+                `edges: [.leading, .trailing, .bottom]`
+            )
+        } else if (safeArea === 'bottom') {
+            console.log('safeArea is bottom')
+            content = content.replace(
+                /edges: \[\]/,
+                `edges: [.top, .leading, .trailing]`
+            )
+        } else if (safeArea === 'left') {
+            console.log('safeArea is left')
+            content = content.replace(
+                /edges: \[\]/,
+                `edges: [.top, .trailing, .bottom]`
+            )
+        } else if (safeArea === 'right') {
+            console.log('safeArea is right')
+            content = content.replace(
+                /edges: \[\]/,
+                `edges: [.top, .leading, .bottom]`
+            )
+        } else if (safeArea === 'horizontal') {
+            console.log('safeArea is horizontal')
+            content = content.replace(/edges: \[\]/, `edges: [.top, .bottom]`)
+        } else if (safeArea === 'vertical') {
+            console.log('safeArea is vertical')
+            content = content.replace(
+                /edges: \[\]/,
+                `edges: [.leading, .trailing]`
+            )
+        }
         await fs.writeFile(contentViewPath, content)
         console.log(`✅ Updated web URL to: ${webUrl}`)
     } catch (error) {
@@ -104,13 +140,14 @@ const updateBundleId = async (newBundleId) => {
 
 const main = async () => {
     const { webview } = ppconfig.phone
-    const { name, showName, version, webUrl, id, pubBody, debug } = ppconfig.ios
+    const { name, showName, version, webUrl, id, pubBody, debug, safeArea } =
+        ppconfig.ios
 
     // Update app name if provided
     await updateAppName(showName)
 
     // Update web URL if provided
-    await updateWebUrl(webUrl)
+    await updateWebUrl(webUrl, safeArea)
 
     // update debug
     await updateWebEnv(debug, webview)
